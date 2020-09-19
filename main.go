@@ -50,10 +50,10 @@ func AdminLogin(w http.ResponseWriter, r *http.Request) {
 			data := []byte(val)
 			var clave, _, _, _ = jsonparser.Get(data, "password")
 			if string(clave) == user.Password {
-				_, tokenString, _ := tokenAuth.Encode(jwt.MapClaims{"username": user.Username,"types":"admin"})
+				_, tokenString, _ := tokenAuth.Encode(jwt.MapClaims{"username": user.Username, "types": "admin"})
 				w.Header().Set("content-type", "application/json")
 				_, _ = w.Write([]byte(`{ "token": "` + tokenString + `" }`))
-			}else{
+			} else {
 				_, _ = fmt.Fprintf(w, "{\"e\":1,\"d\":[1,3]}")
 			}
 		} else {
@@ -69,15 +69,15 @@ func UserLogin(w http.ResponseWriter, r *http.Request) {
 	if user.Username == "" || user.Password == "" || regCorreo.MatchString(user.Username) == false || regPass.MatchString(user.Password) == false {
 		_, _ = fmt.Fprintf(w, "{\"e\":1,\"d\":[1,2]}")
 	} else {
-		val, err := client.Get("users_" + user.Username).Result()
+		val, err := client.Get("client_" + user.Username).Result()
 		if err == nil {
 			data := []byte(val)
 			var clave, _, _, _ = jsonparser.Get(data, "password")
 			if string(clave) == user.Password {
-				_, tokenString, _ := tokenAuth.Encode(jwt.MapClaims{"username": user.Username,"types":"users"})
+				_, tokenString, _ := tokenAuth.Encode(jwt.MapClaims{"username": user.Username, "types": "users"})
 				w.Header().Set("content-type", "application/json")
 				_, _ = w.Write([]byte(`{ "token": "` + tokenString + `" }`))
-			}else{
+			} else {
 				_, _ = fmt.Fprintf(w, "{\"e\":1,\"d\":[1,3]}")
 			}
 		} else {
@@ -102,26 +102,26 @@ func router() http.Handler {
 	r.Use(corsVar.Handler)
 
 	type Technical struct {
-		ID    int   `json:"id"`
-		Email  string  `json:"email"`
-		Password  string  `json:"password"`
+		ID       int    `json:"id"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	type Ticket struct {
-		ID    int   `json:"id"`
-		Typeticket  string  `json:"typeticket"`
-		DayInsert  string  `json:"dayinsert"`
-		DayAsign  string  `json:"dayasign"`
-		IdClient  int  `json:"idclient"`
-		IdTechnical  int  `json:"idtechnical"`
-		Status  string  `json:"status"`
-		Address  string  `json:"address"`
+		ID          int    `json:"id"`
+		Typeticket  string `json:"typeticket"`
+		DayInsert   string `json:"dayinsert"`
+		DayAsign    string `json:"dayasign"`
+		IdClient    int    `json:"idclient"`
+		IdTechnical int    `json:"idtechnical"`
+		Status      string `json:"status"`
+		Address     string `json:"address"`
 	}
 
 	type Client struct {
-		ID    int   `json:"id"`
-		Email  string  `json:"email"`
-		Password  string  `json:"password"`
+		ID       int    `json:"id"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	var technicals []Technical
@@ -133,8 +133,8 @@ func router() http.Handler {
 		val, _ := client.Get(keys[sum]).Result()
 		sum++
 		var app Technical
-		_= json.Unmarshal([]byte(val), &app)
-		technicals = append(technicals,app)
+		_ = json.Unmarshal([]byte(val), &app)
+		technicals = append(technicals, app)
 	}
 	fmt.Println(technicals)
 
@@ -147,8 +147,8 @@ func router() http.Handler {
 		val, _ := client.Get(keys2[sum2]).Result()
 		sum2++
 		var app Client
-		_= json.Unmarshal([]byte(val), &app)
-		clients = append(clients,app)
+		_ = json.Unmarshal([]byte(val), &app)
+		clients = append(clients, app)
 	}
 	fmt.Println(clients)
 
@@ -161,8 +161,8 @@ func router() http.Handler {
 		val, _ := client.Get(keys3[sum3]).Result()
 		sum3++
 		var app Ticket
-		_= json.Unmarshal([]byte(val), &app)
-		Tickets = append(Tickets,app)
+		_ = json.Unmarshal([]byte(val), &app)
+		Tickets = append(Tickets, app)
 	}
 	fmt.Println(Tickets)
 
@@ -261,7 +261,6 @@ func router() http.Handler {
 					return clients, nil
 				},
 			},
-
 		},
 	})
 
@@ -286,16 +285,16 @@ func router() http.Handler {
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					rand.Seed(time.Now().UnixNano())
 					technical := Technical{
-						ID:    rand.Intn(100000),
-						Email:  params.Args["email"].(string),
-						Password:  params.Args["password"].(string),
+						ID:       rand.Intn(100000),
+						Email:    params.Args["email"].(string),
+						Password: params.Args["password"].(string),
 					}
-					technicals =  append(technicals,technical)
-					valx, _ := client.Get("admin_"+params.Args["email"].(string)).Result()
+					technicals = append(technicals, technical)
+					valx, _ := client.Get("admin_" + params.Args["email"].(string)).Result()
 					if valx == "" {
 						_ = client.Set("admin_"+params.Args["email"].(string), `{"email":"`+params.Args["email"].(string)+`","password":"`+params.Args["password"].(string)+`","id":`+strconv.Itoa(technical.ID)+`}`, 0).Err()
 						return technical, nil
-					}else{
+					} else {
 						return nil, nil
 					}
 				},
@@ -316,18 +315,18 @@ func router() http.Handler {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					email, emailOk  := params.Args["email"].(string)
+					email, emailOk := params.Args["email"].(string)
 					password, passwordOk := params.Args["password"].(string)
 					technical := Technical{
-						ID:    0,
-						Email:  params.Args["email"].(string),
-						Password:  params.Args["password"].(string),
+						ID:       0,
+						Email:    params.Args["email"].(string),
+						Password: params.Args["password"].(string),
 					}
 					if passwordOk && emailOk {
-						val, err := client.Get("admin_"+email).Result()
+						val, err := client.Get("admin_" + email).Result()
 						if err == nil {
 							data := []byte(val)
-							var id, _, _, _= jsonparser.Get(data, "id")
+							var id, _, _, _ = jsonparser.Get(data, "id")
 							_ = client.Set("admin_"+email, `{"email":"`+email+`","password":"`+password+`","id":`+string(id)+`}`, 0).Err()
 						}
 					}
@@ -355,7 +354,7 @@ func router() http.Handler {
 							technicals = append(technicals[:i], technicals[i+1:]...)
 						}
 					}
-					_ = client.Del("admin_"+email).Err()
+					_ = client.Del("admin_" + email).Err()
 					return technical, nil
 				},
 			},
@@ -375,15 +374,15 @@ func router() http.Handler {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					email, emailOk  := params.Args["email"].(string)
+					email, emailOk := params.Args["email"].(string)
 					password, passwordOk := params.Args["password"].(string)
 					clientAux := Client{
-						ID:    0,
-						Email:  params.Args["email"].(string),
-						Password:  params.Args["password"].(string),
+						ID:       0,
+						Email:    params.Args["email"].(string),
+						Password: params.Args["password"].(string),
 					}
 					if passwordOk && emailOk {
-						val, err := client.Get("client_"+email).Result()
+						val, err := client.Get("client_" + email).Result()
 						if err == nil {
 							data := []byte(val)
 
@@ -393,7 +392,7 @@ func router() http.Handler {
 								}
 							}
 
-							var id, _, _, _= jsonparser.Get(data, "id")
+							var id, _, _, _ = jsonparser.Get(data, "id")
 							_ = client.Set("client_"+email, `{"email":"`+email+`","password":"`+password+`","id":`+string(id)+`}`, 0).Err()
 						}
 					}
@@ -402,7 +401,7 @@ func router() http.Handler {
 			},
 
 			/* Delete client by id
-			   localhost:5000/graphql?query=mutation+_{deleteclient(id:27872){id,email,password}}
+			   localhost:5000/graphql?query=mutation+_{deleteclient(email:"cliente4@gmail.com"){id,email,password}}
 			*/
 			"deleteclient": &graphql.Field{
 				Type:        clientType,
@@ -421,7 +420,7 @@ func router() http.Handler {
 							clients = append(clients[:i], clients[i+1:]...)
 						}
 					}
-					_ = client.Del("client_"+email).Err()
+					_ = client.Del("client_" + email).Err()
 					return clientsAux, nil
 				},
 			},
@@ -454,7 +453,7 @@ func router() http.Handler {
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					rand.Seed(time.Now().UnixNano())
-					var random = rand.Intn(len(technicals) - 0) + 0
+					var random = rand.Intn(len(technicals)-0) + 0
 					register := false
 					for _, p := range clients {
 						if p.ID == params.Args["idclient"].(int) {
@@ -472,10 +471,10 @@ func router() http.Handler {
 							Status:      params.Args["status"].(string),
 							Address:     params.Args["address"].(string),
 						}
-						Tickets =  append(Tickets,ticket)
+						Tickets = append(Tickets, ticket)
 						_ = client.Set("ticket_"+strconv.Itoa(ticket.ID)+"_"+strconv.Itoa(technicals[random].ID)+"_"+params.Args["dayasign"].(string)+"_"+params.Args["status"].(string), `{"typeticket":"`+params.Args["typeticket"].(string)+`","id":`+strconv.Itoa(ticket.ID)+`,"status":"`+params.Args["status"].(string)+`","idtechnical":`+strconv.Itoa(technicals[random].ID)+`,"dayinsert":"`+params.Args["dayinsert"].(string)+`","address":"`+params.Args["address"].(string)+`","idclient":`+strconv.Itoa(params.Args["idclient"].(int))+`,"dayasign":"`+params.Args["dayasign"].(string)+`"}`, 0).Err()
 						return ticket, nil
-					}else{
+					} else {
 						return nil, nil
 					}
 
@@ -497,10 +496,10 @@ func router() http.Handler {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					id, idOk  := params.Args["id"].(int)
+					id, idOk := params.Args["id"].(int)
 					status, statusOk := params.Args["status"].(string)
 
-					if idOk && statusOk{
+					if idOk && statusOk {
 
 						update := false
 						for _, p := range Tickets {
@@ -511,29 +510,29 @@ func router() http.Handler {
 						}
 
 						if update {
-							valor, _ := client.Keys("ticket_"+strconv.Itoa(id)+"_*").Result()
+							valor, _ := client.Keys("ticket_" + strconv.Itoa(id) + "_*").Result()
 							val, err := client.Get(valor[0]).Result()
 							_ = client.Del(valor[0]).Err()
 							if err == nil {
 								data := []byte(val)
-								var idTicket, _, _, _= jsonparser.Get(data, "id")
-								var dayasign, _, _, _= jsonparser.Get(data, "dayasign")
-								var typeticket, _, _, _= jsonparser.Get(data, "typeticket")
-								var idtechnical, _, _, _= jsonparser.Get(data, "idtechnical")
-								var dayinsert, _, _, _= jsonparser.Get(data, "dayinsert")
-								var address, _, _, _= jsonparser.Get(data, "address")
-								var idclient, _, _, _= jsonparser.Get(data, "idclient")
+								var idTicket, _, _, _ = jsonparser.Get(data, "id")
+								var dayasign, _, _, _ = jsonparser.Get(data, "dayasign")
+								var typeticket, _, _, _ = jsonparser.Get(data, "typeticket")
+								var idtechnical, _, _, _ = jsonparser.Get(data, "idtechnical")
+								var dayinsert, _, _, _ = jsonparser.Get(data, "dayinsert")
+								var address, _, _, _ = jsonparser.Get(data, "address")
+								var idclient, _, _, _ = jsonparser.Get(data, "idclient")
 								_ = client.Set("ticket_"+string(idTicket)+"_"+string(idtechnical)+"_"+string(dayasign)+"_"+status, `{"typeticket":"`+string(typeticket)+`","id":`+string(idTicket)+`,"status":"`+status+`","idtechnical":`+string(idtechnical)+`,"dayinsert":"`+string(dayinsert)+`","address":"`+string(address)+`","idclient":`+string(idclient)+`,"dayasign":"`+string(dayasign)+`"}`, 0).Err()
 							}
 							technical := Ticket{
-								ID:          id,
-								Status:      params.Args["status"].(string),
+								ID:     id,
+								Status: params.Args["status"].(string),
 							}
 							return technical, nil
-						}else{
+						} else {
 							return nil, nil
 						}
-					}else{
+					} else {
 						return nil, nil
 					}
 				},
@@ -552,7 +551,7 @@ func router() http.Handler {
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					id, _ := params.Args["id"].(int)
-					valor, _ := client.Keys("ticket_"+strconv.Itoa(id)+"_*").Result()
+					valor, _ := client.Keys("ticket_" + strconv.Itoa(id) + "_*").Result()
 					_ = client.Del(valor[0]).Err()
 					ticket := Ticket{}
 					for i, p := range Tickets {
@@ -577,31 +576,38 @@ func router() http.Handler {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					idtechnical, idOk  := params.Args["idtechnical"].(int)
+					idtechnical, idOk := params.Args["idtechnical"].(int)
 
 					if idOk {
 
 						var Tickets2 []Ticket
+						year, month, day := time.Now().Date()
+
+						var monthV2 = ""
+						if int(month) < 10 {
+							monthV2 = "0" + strconv.Itoa(int(month))
+						} else {
+							monthV2 = strconv.Itoa(int(month))
+						}
 						ok := false
 						for _, p := range Tickets {
-							if p.IdTechnical == idtechnical && p.Status=="ok" {
+							if p.IdTechnical == idtechnical && p.Status == "ok" && p.DayAsign == strconv.Itoa(day)+"-"+monthV2+"-"+strconv.Itoa(year) {
 								ok = true
-								Tickets2 = append(Tickets2,p)
+								Tickets2 = append(Tickets2, p)
 							}
 						}
 
 						if ok {
-							return Tickets2[0] ,nil
-						}else{
+							return Tickets2[0], nil
+						} else {
 							return 0, nil
 						}
 
-					}else{
+					} else {
 						return nil, nil
 					}
 				},
 			},
-
 		},
 	})
 
@@ -613,7 +619,7 @@ func router() http.Handler {
 				localhost:5000/graphql?query={technical(email:"tecnico1@gmail.com"){email}}
 				*/
 				"technical": &graphql.Field{
-					Type: technicalType,
+					Type:        technicalType,
 					Description: "Get technical by email",
 					Args: graphql.FieldConfigArgument{
 						"email": &graphql.ArgumentConfig{
@@ -637,7 +643,7 @@ func router() http.Handler {
 				localhost:5000/graphql?query={client(email:"cliente4@gmail.com"){email}}
 				*/
 				"client": &graphql.Field{
-					Type: clientType,
+					Type:        clientType,
 					Description: "Get client by email",
 					Args: graphql.FieldConfigArgument{
 						"email": &graphql.ArgumentConfig{
@@ -662,7 +668,7 @@ func router() http.Handler {
 				   localhost:5000/graphql?query={listtehnicals{id,email,password}}
 				*/
 				"listtehnicals": &graphql.Field{
-					Type:graphql.NewList(technicalType),
+					Type:        graphql.NewList(technicalType),
 					Description: "Get technical list",
 					Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 						return technicals, nil
@@ -673,7 +679,7 @@ func router() http.Handler {
 				   localhost:5000/graphql?query={listclients{id,email,password}}
 				*/
 				"listclients": &graphql.Field{
-					Type:graphql.NewList(clientType),
+					Type:        graphql.NewList(clientType),
 					Description: "Get client list",
 					Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 						return clients, nil
@@ -684,38 +690,37 @@ func router() http.Handler {
 				   localhost:5000/graphql?query={listtickets{id,status,dayasign}}
 				*/
 				"listtickets": &graphql.Field{
-					Type:graphql.NewList(ticketType),
+					Type:        graphql.NewList(ticketType),
 					Description: "Get ticket list",
 					Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 						return Tickets, nil
 					},
 				},
-
 			},
 		})
 
 	var queryTypePublic = graphql.NewObject(
 		graphql.ObjectConfig{
-			Name: "Query",
+			Name:   "Query",
 			Fields: graphql.Fields{},
 		})
 
 	schema, _ := graphql.NewSchema(graphql.SchemaConfig{
-		Query: queryType,
+		Query:    queryType,
 		Mutation: mutationType,
 	})
 
 	schema2, _ := graphql.NewSchema(graphql.SchemaConfig{
-		Query: queryTypePublic,
+		Query:    queryTypePublic,
 		Mutation: mutationTypePublic,
 	})
 
 	r.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(tokenAuth))
 		r.Use(jwtauth.Authenticator)
-		r.Get("/graphql", func(w http.ResponseWriter, r *http.Request){
+		r.Get("/graphql", func(w http.ResponseWriter, r *http.Request) {
 			result := graphql.Do(graphql.Params{
-				Schema:schema,
+				Schema:        schema,
 				RequestString: r.URL.Query().Get("query"),
 			})
 			_ = json.NewEncoder(w).Encode(result)
@@ -723,9 +728,9 @@ func router() http.Handler {
 	})
 
 	r.Group(func(r chi.Router) {
-		r.Get("/graphql_public", func(w http.ResponseWriter, r *http.Request){
+		r.Get("/graphql_public", func(w http.ResponseWriter, r *http.Request) {
 			result := graphql.Do(graphql.Params{
-				Schema:schema2,
+				Schema:        schema2,
 				RequestString: r.URL.Query().Get("query"),
 			})
 			_ = json.NewEncoder(w).Encode(result)
